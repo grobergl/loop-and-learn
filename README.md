@@ -1,5 +1,7 @@
 # Loop & Learn
 
+[Open the website](https://grobergl.github.io/loop-and-learn/) · [Source repository](https://github.com/grobergl/loop-and-learn)
+
 Version 2.1.0 of the crochet planning app for an AI / vibe programming course.
 
 ## Try the app without installing anything
@@ -192,7 +194,10 @@ your installation or install Playwright's browser on another computer.
 
 ## GitHub and later class connections
 
-The app source is being published to https://github.com/grobergl/loop-and-learn.
+The app source is published to https://github.com/grobergl/loop-and-learn.
+GitHub reported a successful Pages deployment for the app build on 2026-11-24.
+The build environment cannot directly open grobergl.github.io under its
+network policy; the live rendered page has not been visually inspected here.
 Read DEPLOY.md for GitHub Pages setup. `npm run build:pages` creates a complete
 static website in docs/. GitHub Pages must be enabled for main /docs before
 that website is live; never assume a source upload itself proves publication.

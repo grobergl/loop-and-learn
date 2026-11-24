@@ -22,6 +22,11 @@ cross-device sync has been configured. Never imply otherwise.
 ## GitHub publishing
 
 The selected repository is https://github.com/grobergl/loop-and-learn.
+The website address is https://grobergl.github.io/loop-and-learn/.
+GitHub reported a successful Pages deployment for source commit
+1184b515741c230b6579c8eaa089055931ed9ae0. Direct access to the website
+hostname was rejected by the environment network policy, so no live visual
+check was performed. Local build and browser checks passed.
 Source and docs/index.html should be updated in one commit after checks.
 Run npm run build:pages. The repository's Pages settings must deploy main
 /docs. Verify the actual website before calling it live. No real users'
@@ -57,5 +62,4 @@ in source ZIPs or in chat. Use .env.example locally for later configuration.
 Update the existing private download Page with the latest standalone HTML,
 source ZIP, and AGENTS.md. Keep its instructions accurate. Published Sites is
 not enabled in this workspace; do not send the user searching for nonexistent
-web environment settings. The current Page is:
-https://chatgpt.com/space/page_b50980425834819196bca3e080a340c3
+web environment settings. Private download links are supplied in the chat, not in public source files.
