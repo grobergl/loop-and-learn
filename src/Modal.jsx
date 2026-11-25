@@ -51,6 +51,9 @@ import {
 } from "./model";
 import { PatternArt } from "./art";
 import { Empty, download } from "./ui";
+import { pendingYards } from "./purchases.js";
+import { YarnPhotoInput } from "./YarnPhoto.jsx";
+import { PurchaseForm, PurchaseHistory, DeliveryForm } from "./Purchases.jsx";
 const uid = () => crypto.randomUUID();
 export function Modal({
   modal: m,
@@ -61,11 +64,20 @@ export function Modal({
   startProject,
   openProject,
   openProfile,
+  openModal,
 }) {
   const patterns = allPatterns(state);
+  const yarnLinked =
+    m.yarn &&
+    (state.projects.some((p) =>
+      materialsFor(p).some((material) => material.yarnId === m.yarn.id),
+    ) ||
+      (state.purchases || []).some((p) => p.yarnId === m.yarn.id));
   const dialog = useRef(null),
     [error, setError] = useState(""),
-    [confirmCancel, setConfirmCancel] = useState(false);
+    [confirmCancel, setConfirmCancel] = useState(false),
+    [yarnPhoto, setYarnPhoto] = useState(m.yarn?.photo || null),
+    [photoBusy, setPhotoBusy] = useState(false);
   useEffect(() => {
     const before = document.activeElement;
     dialog.current.showModal();
@@ -75,6 +87,8 @@ export function Modal({
   }, []);
   useEffect(() => {
     setError("");
+    setYarnPhoto(m.yarn?.photo || null);
+    setPhotoBusy(false);
     dialog.current.scrollTop = 0;
   }, [m]);
   const stop = (e) => {
@@ -102,8 +116,43 @@ export function Modal({
     editProject: "Make it your own",
     settings: "Your little studio",
     cancel: "Let this project go?",
+    purchase: "Record a yarn purchase",
+    purchases: "Your purchase history",
+    receivePurchase: "Welcome your yarn home",
+    deliveryDate: "Update expected arrival",
   }[m.type];
   let content;
+  if (m.type === "purchase")
+    content = (
+      <PurchaseForm
+        state={state}
+        setState={setState}
+        yarnId={m.yarnId}
+        close={close}
+        notify={notify}
+      />
+    );
+  if (m.type === "purchases")
+    content = (
+      <PurchaseHistory
+        key={m.yarnId || "all"}
+        state={state}
+        yarnId={m.yarnId}
+        openModal={openModal}
+      />
+    );
+  if (["receivePurchase", "deliveryDate"].includes(m.type))
+    content = (
+      <DeliveryForm
+        key={`${m.type}-${m.purchaseId}`}
+        state={state}
+        setState={setState}
+        purchaseId={m.purchaseId}
+        mode={m.type === "receivePurchase" ? "receive" : "date"}
+        close={close}
+        notify={notify}
+      />
+    );
   if (m.type === "pattern")
     content = (
       <>
@@ -180,6 +229,10 @@ export function Modal({
       <form
         onSubmit={(e) => {
           stop(e);
+          if (photoBusy) {
+            setError("Wait for your photo to finish preparing.");
+            return;
+          }
           const f = new FormData(e.currentTarget);
           const val = {
             id: m.yarn?.id || uid(),
@@ -189,6 +242,7 @@ export function Modal({
             fiber: f.get("fiber").trim(),
             weight: f.get("weight"),
             yards: Number(f.get("yards")),
+            photo: yarnPhoto,
           };
           if (
             !val.name ||
@@ -225,6 +279,19 @@ export function Modal({
         }}
       >
         <p className="modal-intro">
+          {!m.yarn && (
+            <>
+              List yarn you already own here. For yarn you just bought,{" "}
+              <button
+                type="button"
+                className="text-link"
+                onClick={() => openModal({ type: "purchase" })}
+              >
+                Record a purchase
+              </button>{" "}
+              to save its history too.{" "}
+            </>
+          )}
           Use the label for yarn weight and yardage. For partial skeins, enter
           your best estimate of what’s left.
         </p>
@@ -238,26 +305,32 @@ export function Modal({
             maxLength={80}
           />,
         )}
-        <div className="form-columns">
+        {field(
+          "Color name",
+          <input
+            name="color"
+            defaultValue={m.yarn?.color}
+            placeholder="e.g. Sage meadow"
+            required
+            maxLength={60}
+          />,
+        )}
+        <YarnPhotoInput
+          photo={yarnPhoto}
+          onChange={setYarnPhoto}
+          onBusyChange={setPhotoBusy}
+        />
+        <details className="yarn-fallback-color">
+          <summary>Optional fallback color</summary>
           {field(
-            "Color name",
-            <input
-              name="color"
-              defaultValue={m.yarn?.color}
-              placeholder="e.g. Sage meadow"
-              required
-              maxLength={60}
-            />,
-          )}
-          {field(
-            "Color swatch",
+            "Fallback color",
             <input
               type="color"
               name="hex"
               defaultValue={m.yarn?.hex || "#93a38b"}
             />,
           )}
-        </div>
+        </details>
         <div className="form-columns">
           {field(
             "Fiber",
@@ -312,18 +385,10 @@ export function Modal({
             <button
               type="button"
               className="button danger-text"
-              disabled={state.projects.some((p) =>
-                materialsFor(p).some(
-                  (material) => material.yarnId === m.yarn.id,
-                ),
-              )}
+              disabled={yarnLinked}
               title={
-                state.projects.some((p) =>
-                  materialsFor(p).some(
-                    (material) => material.yarnId === m.yarn.id,
-                  ),
-                )
-                  ? "Yarn linked to project history cannot be deleted. Set remaining yards to 0 instead."
+                yarnLinked
+                  ? "Yarn linked to project or purchase history cannot be deleted. Set remaining yards to 0 instead."
                   : ""
               }
               onClick={() => {
@@ -338,20 +403,17 @@ export function Modal({
               <Trash2 size={15} /> Remove
             </button>
           )}
-          <button className="button primary" type="submit">
+          <button className="button primary" type="submit" disabled={photoBusy}>
             {m.yarn ? "Save changes" : "Add yarn"}
             <Check size={16} />
           </button>
         </div>
-        {m.yarn &&
-          state.projects.some((p) =>
-            materialsFor(p).some((material) => material.yarnId === m.yarn.id),
-          ) && (
-            <p className="small-print">
-              This yarn is linked to project history. To mark it used up, set
-              its remaining yards to 0.
-            </p>
-          )}
+        {yarnLinked && (
+          <p className="small-print">
+            This yarn is linked to project or purchase history. To mark it used
+            up, set its remaining yards to 0.
+          </p>
+        )}
       </form>
     );
   if (m.type === "stitch") {
@@ -436,10 +498,18 @@ export function Modal({
             <div className="shopping-list">
               {list.map((y) => (
                 <div key={y.id}>
-                  <span
-                    className="swatch large"
-                    style={{ background: y.hex }}
-                  />
+                  {y.photo ? (
+                    <img
+                      className="yarn-photo-thumb"
+                      src={y.photo}
+                      alt={`${y.name} — ${y.color}`}
+                    />
+                  ) : (
+                    <span
+                      className="swatch large"
+                      style={{ background: y.hex }}
+                    />
+                  )}
                   <div>
                     <strong>{y.color}</strong>
                     <small>
@@ -448,6 +518,12 @@ export function Modal({
                     <small>
                       {y.yards} yd on hand · {y.reserved} yd reserved
                     </small>
+                    {!y.unassigned && pendingYards(state, y.id) > 0 && (
+                      <small className="pending-yarn-note">
+                        {pendingYards(state, y.id)} yd already purchased,
+                        awaiting delivery. Not yet in stock.
+                      </small>
+                    )}
                     <a
                       href={
                         "https://www.google.com/search?tbm=shop&q=" +
@@ -481,7 +557,7 @@ export function Modal({
                     list
                       .map(
                         (y) =>
-                          `${y.color} / ${y.name}\n${y.fiber}, ${y.weight}\nNeed at least ${y.short} additional yards\n`,
+                          `${y.color} / ${y.name}\n${y.fiber}, ${y.weight}\nNeed at least ${y.short} additional yards${!y.unassigned && pendingYards(state, y.id) ? `\nAlready purchased, awaiting delivery: ${pendingYards(state, y.id)} yards (not yet in stock)` : ""}\n`,
                       )
                       .join("\n"),
                   "loop-and-learn-shopping-list.txt",

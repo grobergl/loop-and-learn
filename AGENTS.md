@@ -78,6 +78,28 @@ Finishing deducts confirmed actual use once per yarn record and releases all
 reservations. Combine uses of the same yarn before validating stock limits.
 Reject missing/negative usage and spending more yarn than is on hand.
 
+Purchase history links to yarn IDs. Awaiting deliveries never count as on-hand
+stock or reduce the physical-stock shortage. Record receipt explicitly and
+credit purchased yards only once, updating history and stock together.
+Expected arrival dates only prompt the maker; they never prove receipt.
+Reminders are in-app and use the maker's local calendar dates. Preserve purchase
+history in backups; older backups upgrade to empty history without replaying
+stock additions. Keep yarn linked to purchase history from being deleted.
+Gift sharing and surprise mode are planned, not connected capabilities.
+Record a purchase must support typing a new yarn directly, without requiring
+Add yarn first. Create its yarn record and purchase together; failed or canceled
+forms must not leave empty yarn records. Repeat purchases can explicitly link
+to an existing yarn ID. For skein-based entry require yards per skein from the
+label; never guess a conversion. Show Expected delivery only for awaiting
+purchases and Date received for yarn already in hand.
+Yarn photos/screenshots are optional. Resize JPG/PNG/WebP uploads locally, save
+them with the yarn, and preserve them through edits and backup restore. Keep
+the previous photo if a replacement fails; canceling a form must not save it.
+Photo changes never alter stock or reservations. Keep a fallback color and
+color name; never infer yarn identity, fiber, quantity, or suitability from a
+photo. Camera capture depends on the device; automated file-upload checks are
+not proof of a live camera test. No image service is connected for these photos.
+
 ## Boundaries and persistence
 
 Preserve unrelated work and existing records. Maintain compatibility with

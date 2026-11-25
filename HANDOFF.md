@@ -2,6 +2,19 @@
 
 ## Current work
 
+Version 2.2.2 adds yarn purchase history, awaiting/received status, optional
+expected delivery dates, receipt tracking, and in-app delivery reminders.
+Record a purchase can create a new yarn directly or link to an existing yarn.
+Quantities can be entered as yards or skeins with label yards per skein.
+Receipt updates stock once; pending orders remain separate from physical stock.
+Optional yarn photos/screenshots are resized locally, saved with yarn, shown
+on cards and shopping lists, and preserved in backups. Existing studios and
+version 1 backups remain supported. Shared gift lists are planned, not connected.
+
+The release passed 33 logic checks, 24 browser checks, and website, standalone,
+and Pages builds. Camera-enabled file input was checked with a test image;
+a physical camera was not tested. Agent checks supplement student observations.
+
 Version 2.1.0 adds fixed category icons, a compact sidebar, 24 stitch guides,
 a growing personal stitch collection, texture-aware setup, and a full-pattern
 reply importer aligned with the copied AI prompt. It keeps New project accessible from the project list, an open
@@ -34,7 +47,7 @@ local browser records, reference images, or backup files belong in Git.
 
 ## Classroom approach
 
-This chat is still expanding the initial build. For a chapter exercise, let
+For a chapter exercise, let
 the student predict the outcome, choose an edge case, inspect the changes,
 and operate the app. Agent-run checks supplement their judgment. Do not
 complete their prediction/reflection for them. The course reading emphasizes

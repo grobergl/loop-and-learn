@@ -2,7 +2,7 @@
 
 [Open the website](https://grobergl.github.io/loop-and-learn/) · [Source repository](https://github.com/grobergl/loop-and-learn)
 
-Version 2.1.0 of the crochet planning app for an AI / vibe programming course.
+Version 2.2.2 of the crochet planning app for an AI / vibe programming course.
 
 ## Try the app without installing anything
 
@@ -123,6 +123,58 @@ the library or another project. If instructions change after progress was
 recorded, saving requires explicit confirmation to reset the checked rows.
 Row/round percentage is not an estimate of time, material use, or difficulty.
 
+## Purchases and deliveries
+
+In Yarn stash, choose **Record a purchase** on a yarn card, or use the button
+beside search. Type a new yarn's name and fill in its color and weight in that
+same form, or type to find an existing yarn and choose **Use this yarn**.
+You do not need to use Add yarn first, even with an empty stash. New yarn and
+its purchase are saved together. Add yarn remains available to list yarn you
+already own without recording a purchase.
+
+Choose **Total yards** or **Skeins**. Total yards means additional yards
+purchased, not the new stock total. For skeins, enter both the number purchased
+and yards per skein from the label; the app calculates and saves total yards.
+Store and purchase notes are optional.
+
+New-yarn purchases and the Add/Edit yarn form accept an optional photo or
+screenshot. Use **Upload photo or screenshot**, or **Take a photo** on a device
+that supports camera capture. JPG, PNG, and WebP files up to 15 MB are resized
+locally before saving. The yarn card, repeat-purchase preview, and shopping
+list display the saved photo. Photos are included in studio JSON backups and
+can be replaced or removed in Edit yarn. They do not change stock or project
+reservations. Color names remain searchable; the color picker is tucked under
+**Optional fallback color** for yarn without a photo or small color indicators.
+Photos stay in browser storage; no image service or AI connection is involved.
+
+- **Purchased — I have it:** save the dated purchase and add its yards to stock.
+  The date field is **Date received**.
+- **Purchased — awaiting delivery:** save the order without changing stock.
+  Optionally enter **Expected delivery**. New yarn awaiting delivery starts
+  with 0 yards on hand.
+- **Purchase history:** view all purchases or one yarn's history, filter by
+  status, change an expected date, or mark an awaiting purchase received.
+
+Dashboard reminders ask whether yarn has arrived on or after its expected
+date. **Still waiting** postpones that reminder until the next calendar day;
+**Change expected delivery** reschedules it. Clearing the expected date turns
+off date reminders while keeping the order in the awaiting list. Reminders
+appear only while the app is open; no email or background notifications run.
+
+Mark received only after the full purchase arrives. Receipt adds its yards
+once, records the receipt date, and releases the delivery reminder. It does
+not change project reservations. Availability and shortages recalculate from
+the updated stock. Awaiting quantities appear separately on stash cards and
+shopping lists; they are not subtracted from the physical-stock shortage.
+
+History is included in studio JSON backups. Old backups gain an empty history
+without inventing past purchases or changing stock. Restoring a backup does
+not add its received purchases to stock a second time. Yarn linked to project
+or purchase history cannot be deleted; use a stock correction to mark it used
+up. This version does not support partial receipts, purchase deletion, or
+returns. Gift lists, surprise mode, and shared purchase tracking remain
+planned features; purchase records currently stay in this browser.
+
 ## Work on the source
 
 Requires Node 22.12+ (tested with Node 24). Run from this folder:
@@ -187,6 +239,10 @@ your installation or install Playwright's browser on another computer.
 - `src/Profile.jsx`: optional personal setup.
 - `src/project.js`: instruction parsing, glossary, profiles, backup validation.
 - `src/model.js`: reservations, shortages, and actual yarn consumption.
+- `src/purchases.js`: purchase validation, receipt, pending quantities, and reminder dates.
+- `src/yarn.js`: shared yarn weights and validation of newly purchased yarn.
+- `src/YarnPhoto.jsx` and `src/yarn-photo.js`: optional photo upload, local resizing, and photo validation.
+- `src/Purchases.jsx`: purchase forms, history, receipt, and delivery reminders.
 - `src/Modal.jsx`: dialogs, stash forms, stitch guides, backups, and completion.
 - `src/data.js`: original sample patterns, stitches, and demonstration records.
 - `src/ai-service.js` and `server.mjs`: optional AI adapter and local server.

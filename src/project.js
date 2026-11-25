@@ -1,15 +1,9 @@
 import { libraryIds } from "./stitch-library.js";
+import { validPurchase } from "./purchases.js";
 import { patterns as builtins, stitches } from "./data.js";
-export const weights = [
-  "0 · Lace",
-  "1 · Super fine",
-  "2 · Fine",
-  "3 · Light",
-  "4 · Medium",
-  "5 · Bulky",
-  "6 · Super bulky",
-  "7 · Jumbo",
-];
+import { weights } from "./yarn.js";
+import { validYarnPhoto } from "./yarn-photo.js";
+export { weights };
 export const levels = [
   "Beginner",
   "Confident beginner",
@@ -137,6 +131,7 @@ export function upgradeState(s) {
     ...s,
     version: 2,
     customPatterns: s.customPatterns || [],
+    purchases: s.purchases || [],
     skillLibraryIds: libraryIds(s),
     profile: s.profile || {
       onboarded: false,
@@ -227,10 +222,18 @@ export function validateBackup(s) {
           (k) => typeof y[k] === "string",
         ) ||
         !/^#[0-9a-f]{6}$/i.test(y.hex) ||
+        !validYarnPhoto(y.photo) ||
         !weights.includes(y.weight) ||
         !Number.isInteger(y.yards) ||
         y.yards < 0,
     )
+  )
+    return false;
+  if (
+    s.purchases !== undefined &&
+    (!Array.isArray(s.purchases) ||
+      !s.purchases.every((p) => validPurchase(p, s.yarn)) ||
+      new Set(s.purchases.map((p) => p.id)).size !== s.purchases.length)
   )
     return false;
   if (s.saved.some((id) => !allPatterns(s).some((p) => p.id === id)))

@@ -65,6 +65,8 @@ import { Yarn, PatternArt, HeroArt } from "./art";
 import "./style.css";
 import { Modal } from "./Modal";
 import { Stat, SectionTitle, PageHeading, SearchInput, Empty } from "./ui";
+import { localDay, pendingYards } from "./purchases.js";
+import { DeliveryReminders } from "./Purchases.jsx";
 const brandMark =
   "data:image/svg+xml," +
   encodeURIComponent(
@@ -102,6 +104,7 @@ function App() {
     [mobile, setMobile] = useState(false),
     [selected, setSelected] = useState(null),
     [storageError, setStorageError] = useState(false),
+    [today, setToday] = useState(localDay),
     [stitchFilter, setStitchFilter] = useState("My stitches"),
     [difficulty, setDifficulty] = useState("All levels");
   useEffect(() => {
@@ -117,6 +120,17 @@ function App() {
     const t = setTimeout(() => setToast(""), 3500);
     return () => clearTimeout(t);
   }, [toast]);
+  useEffect(() => {
+    const updateDay = () => setToday(localDay());
+    const timer = setInterval(updateDay, 60000);
+    window.addEventListener("focus", updateDay);
+    document.addEventListener("visibilitychange", updateDay);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", updateDay);
+      document.removeEventListener("visibilitychange", updateDay);
+    };
+  }, []);
   const notify = (t) => setToast(t);
   const go = (p) => {
     setPage(p);
@@ -405,6 +419,13 @@ function App() {
             </div>
           </div>
           <aside className="dashboard-aside">
+            <DeliveryReminders
+              state={state}
+              setState={setState}
+              today={today}
+              openModal={setModal}
+              notify={notify}
+            />
             <section className="basket-card">
               <div className="aside-title">
                 <span className="icon-tile peach">
@@ -421,6 +442,11 @@ function App() {
                       <div>
                         <strong>{y.color}</strong>
                         <span>{y.name}</span>
+                        {!y.unassigned && pendingYards(state, y.id) > 0 && (
+                          <span className="pending-yarn-note">
+                            {pendingYards(state, y.id)} yd awaiting delivery
+                          </span>
+                        )}
                       </div>
                       <span className="short-amount">+{y.short} yd</span>
                     </div>
@@ -969,6 +995,20 @@ function App() {
             setQuery={setQuery}
             placeholder="Search colors, fibers, or yarn names…"
           />
+          <div className="purchase-actions">
+            <button
+              className="button outline"
+              onClick={() => setModal({ type: "purchases" })}
+            >
+              Purchase history
+            </button>
+            <button
+              className="button outline"
+              onClick={() => setModal({ type: "purchase" })}
+            >
+              <Plus size={15} /> Record a purchase
+            </button>
+          </div>
         </div>
         <div className="yarn-grid">
           {list.map((y) => {
@@ -977,7 +1017,15 @@ function App() {
             return (
               <article className="yarn-card" key={y.id}>
                 <div className="yarn-visual">
-                  <Yarn color={y.hex} />
+                  {y.photo ? (
+                    <img
+                      className="yarn-photo"
+                      src={y.photo}
+                      alt={`${y.name} — ${y.color}`}
+                    />
+                  ) : (
+                    <Yarn color={y.hex} />
+                  )}
                   <button
                     className="icon-button"
                     aria-label={`Edit ${y.color}`}
@@ -1002,6 +1050,12 @@ function App() {
                       <dd>{r} yd</dd>
                     </div>
                   </dl>
+                  {pendingYards(state, y.id) > 0 && (
+                    <p className="pending-yarn-note">
+                      {pendingYards(state, y.id)} yd purchased, awaiting
+                      delivery
+                    </p>
+                  )}
                   <div className={"availability " + (a < 0 ? "low" : "")}>
                     <span>
                       {a < 0 ? "Needs a top-up" : "Available to plan"}
@@ -1009,6 +1063,26 @@ function App() {
                     <strong>
                       {a < 0 ? Math.abs(a) : a} yd {a < 0 ? "short" : ""}
                     </strong>
+                  </div>
+                  <div className="purchase-actions yarn-purchase-actions">
+                    <button
+                      className="text-link"
+                      aria-label={`Record purchase for ${y.color}`}
+                      onClick={() =>
+                        setModal({ type: "purchase", yarnId: y.id })
+                      }
+                    >
+                      Record a purchase
+                    </button>
+                    <button
+                      className="text-link"
+                      aria-label={`Purchase history for ${y.color}`}
+                      onClick={() =>
+                        setModal({ type: "purchases", yarnId: y.id })
+                      }
+                    >
+                      History
+                    </button>
                   </div>
                 </div>
               </article>
@@ -1302,6 +1376,7 @@ function App() {
           startProject={startProject}
           openProject={openProject}
           openProfile={() => setModal({ type: "profile" })}
+          openModal={setModal}
         />
       )}
       <div className="toast-region" role="status" aria-live="polite">
